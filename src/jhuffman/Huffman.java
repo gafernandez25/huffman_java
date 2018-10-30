@@ -43,15 +43,11 @@ public class Huffman
 		}
 		System.out.println("-------------------------");
 
-		final Node root=buildTree();
+		final Node root=buildTree(listaOrdenada);
 
 		// tree=new TreeUtil(root)
 		// Node root = buildTree();
 	}
-
-	
-
-	
 
 	public static void descomprimir(String filename)
 	{
@@ -59,30 +55,26 @@ public class Huffman
 		System.out.println("descomprimir");
 	}
 
-	private static Node buildTree()
+	private static Node buildTree(SortedList<Node> listaOrdenada)
 	{
-		// inicializa cola de nodos
-		Stack<Node> colaNodos=new Stack<Node>();
-		for(char i=0; i<longAlfabeto; i++)
-			if(tablaCantidades[i]>0) colaNodos.push(new Node(i,tablaCantidades[i],null,null));
-
-		// caso especial si hay un solo caracter repetido N veces
-		if(colaNodos.size()==1)
+		Comparator<Node> cmp=new CmpInteger();
+		// for(int i=0; i<listaOrdenada.size(); i++){
+		// int i=0;
+		while(listaOrdenada.size()>1)
 		{
-			if(tablaCantidades['\0']==0) colaNodos.push(new Node('\0',0,null,null));
-			else colaNodos.push(new Node('\1',0,null,null));
+			Node der=listaOrdenada.get(0);
+			listaOrdenada.remove(0);
+			Node izq=listaOrdenada.get(0);
+			listaOrdenada.remove(0);
+			Node parent=new Node('\0',izq.getN()+der.getN(),izq,der);
+			listaOrdenada.add(parent,cmp);
 		}
+		System.out.println(listaOrdenada.getFirst().getC()+" - "+(char)listaOrdenada.getFirst().getC()+" - "+listaOrdenada.getFirst().getN());
+		System.out.println(listaOrdenada.getFirst().getDer().getC()+" - "+(char)listaOrdenada.getFirst().getDer().getC()+" - "+listaOrdenada.getFirst().getDer().getN());
+		System.out.println(listaOrdenada.getFirst().getIzq().getC()+" - "+(char)listaOrdenada.getFirst().getIzq().getC()+" - "+listaOrdenada.getFirst().getIzq().getN());
+		// }
 
-		// junta dos nodos y mete al padre de ellos en la pila
-		while(colaNodos.size()>1)
-		{
-			Node right=colaNodos.pop(); // 1er elemento
-			Node left=colaNodos.pop(); // 2do elemento
-			Node parent=new Node('\0',left.getN()+right.getN(),left,right);
-			colaNodos.push(parent);
-		}
-
-		return colaNodos.pop();
+		return null;
 	}
 
 	/**

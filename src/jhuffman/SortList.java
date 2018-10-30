@@ -28,7 +28,7 @@ public class SortList
 		@Override
 		public int compare(Node a, Node b)
 		{
-			return (int)(b.getN()-a.getN());
+			return (int)(a.getN()-b.getN());
 		}
 
 	}
