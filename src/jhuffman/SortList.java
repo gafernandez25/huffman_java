@@ -7,15 +7,15 @@ import jhuffman.util.SortedList;
 
 public class SortList
 {
-	public static SortedList<Node> buildList(int[] tablaCantidades)
+	public static SortedList<Node> buildList(int[] tablaApariciones)
 	{
 		SortedList<Node> lst=new SortedList<>();
-		Comparator<Node> cmp=new CmpInteger();
-		for(int i=0; i<tablaCantidades.length; i++)
+		Comparator<Node> cmp=new CmpNode();
+		for(int i=0; i<tablaApariciones.length; i++)
 		{
-			if(tablaCantidades[i]>0)
+			if(tablaApariciones[i]>0)
 			{
-				lst.add(new Node(i,tablaCantidades[i],null,null),cmp);
+				lst.add(new Node(i,tablaApariciones[i],null,null),cmp);
 			}
 		}
 		
@@ -23,7 +23,7 @@ public class SortList
 		return lst;
 	}
 	
-	static class CmpInteger implements Comparator<Node>
+	static class CmpNode implements Comparator<Node>
 	{
 		@Override
 		public int compare(Node a, Node b)

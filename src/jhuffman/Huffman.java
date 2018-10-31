@@ -1,18 +1,20 @@
 package jhuffman;
 
+import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Stack;
 
-import jhuffman.util.SortedList;
-import jhuffman.SortList.CmpInteger;
+import jhuffman.SortList.*;
 import jhuffman.ds.*;
 import jhuffman.util.*;
 
 public class Huffman
 {
 	private static final int longAlfabeto=256;
-	private static int[] tablaCantidades=new int[longAlfabeto];
+	private static int[] tablaApariciones=new int[longAlfabeto];
 	private static TreeUtil tree;
 
 	public static void main(String[] args)
@@ -31,11 +33,11 @@ public class Huffman
 	public static void comprimir(String filename)
 	{
 		// PROGRAMAR AQUI...
-		System.out.println("comprimimiendo "+filename);
+		System.out.println("comprimiendo "+filename);
 		System.out.println("-------------------------");
 		getCantidades(filename);
 
-		SortedList<Node> listaOrdenada=SortList.buildList(tablaCantidades);
+		SortedList<Node> listaOrdenada=SortList.buildList(tablaApariciones);
 		System.out.println("Lista de nodos ordenada");
 		for(int i=0; i<listaOrdenada.size(); i++)
 		{
@@ -43,10 +45,44 @@ public class Huffman
 		}
 		System.out.println("-------------------------");
 
-		final Node root=buildTree(listaOrdenada);
+		Node root=buildTree(listaOrdenada);
 
-		// tree=new TreeUtil(root)
-		// Node root = buildTree();
+		// armo la lista de códigos 
+		final Map<Character,String> listaCodigos=new HashMap<>();
+		buildCode(listaCodigos,root,"");
+		
+		System.out.println("Lista codificada");
+		listaCodigos.forEach((k,v)->System.out.println("Key: " + k + ": Value: " + v));
+		System.out.println("------------------------------------");
+		
+		
+		// guarda el árbol
+		
+		
+		// BitWriter bitWriter=new BitWriter(filename);
+		// bitWriter.writeBit(filename,root);
+
+		// veo los códigos en consola
+		// for(int i=0;i<listaCodigos.length;i++){
+		// if(tablaApariciones[i]>0)
+		// System.out.println(i+ " - "+(char)i+" - "+listaCodigos[i]);
+		// }
+
+		// veo elementos del árbol en consola
+		// System.out.println(root.getC()+" -
+		// "+(char)listaOrdenada.getFirst().getC()+" -
+		// "+listaOrdenada.getFirst().getN());
+		// System.out.println(root.getDer().getC()+" -
+		// "+(char)listaOrdenada.getFirst().getDer().getC()+" -
+		// "+listaOrdenada.getFirst().getDer().getN());
+		// System.out.println(root.getIzq().getIzq().getIzq().getC()+" -
+		// "+(char)root.getIzq().getIzq().getIzq().getC()+" -
+		// "+root.getIzq().getIzq().getIzq().getN());
+		// System.out.println(root.getIzq().getDer().getC()+" -
+		// "+(char)root.getIzq().getDer().getC()+" -
+		// "+root.getIzq().getDer().getN());
+		//
+
 	}
 
 	public static void descomprimir(String filename)
@@ -55,11 +91,57 @@ public class Huffman
 		System.out.println("descomprimir");
 	}
 
+	/**
+	 * genera una cadena de bits con el árbol
+	 * 
+	 * @param nodo
+	 */
+	private static void buildTreeBits(String treeBits,Node nodo)
+	{
+		if(nodo.esHoja())
+		{
+//			BitWriter.writeBit(nodo.getC());
+//			treeBits+=
+			return;
+		}
+		buildTreeBits(treeBits,nodo.getIzq());
+		buildTreeBits(treeBits,nodo.getDer());
+	}
+
+	/**
+	 * arma la tabla con los códigos huffman la tabla queda indexada por el
+	 * ascii del código
+	 * 
+	 * @param sLista
+	 *            String[]
+	 * @param n
+	 *            Node
+	 * @param s
+	 *            String
+	 */
+	private static void buildCode(Map<Character,String> listaCodigos, Node nodo, String codigo)
+	{
+		if(!nodo.esHoja())
+		{
+			buildCode(listaCodigos,nodo.getIzq(),codigo+'0');
+			buildCode(listaCodigos,nodo.getDer(),codigo+'1');
+		}
+		else
+		{
+			listaCodigos.put((char)nodo.getC(),codigo);
+		}
+	}
+
+	/**
+	 * arma el árbol de huffman
+	 * 
+	 * @param listaOrdenada
+	 *            SortedList<Node>
+	 * @return root Node
+	 */
 	private static Node buildTree(SortedList<Node> listaOrdenada)
 	{
-		Comparator<Node> cmp=new CmpInteger();
-		// for(int i=0; i<listaOrdenada.size(); i++){
-		// int i=0;
+		Comparator<Node> cmp=new CmpNode();
 		while(listaOrdenada.size()>1)
 		{
 			Node der=listaOrdenada.get(0);
@@ -69,12 +151,7 @@ public class Huffman
 			Node parent=new Node('\0',izq.getN()+der.getN(),izq,der);
 			listaOrdenada.add(parent,cmp);
 		}
-		System.out.println(listaOrdenada.getFirst().getC()+" - "+(char)listaOrdenada.getFirst().getC()+" - "+listaOrdenada.getFirst().getN());
-		System.out.println(listaOrdenada.getFirst().getDer().getC()+" - "+(char)listaOrdenada.getFirst().getDer().getC()+" - "+listaOrdenada.getFirst().getDer().getN());
-		System.out.println(listaOrdenada.getFirst().getIzq().getC()+" - "+(char)listaOrdenada.getFirst().getIzq().getC()+" - "+listaOrdenada.getFirst().getIzq().getN());
-		// }
-
-		return null;
+		return listaOrdenada.getFirst();// nodo root
 	}
 
 	/**
@@ -94,20 +171,32 @@ public class Huffman
 			while(c>=0)
 			{
 				System.out.print((char)c);
-				tablaCantidades[c]++;
+				tablaApariciones[c]++;
 				c=raf.read();
 			}
 
 			raf.close();
-			System.out.println();
-			System.out.println("-------------------------");
-
 		}
-		catch(Exception e)
+		catch(IOException e)
 		{
+			// TODO Auto-generated catch block
 			e.printStackTrace();
-			throw new RuntimeException(e);
 		}
-	}
+		System.out.println();
+		System.out.println("-------------------------");
 
+	}
+	// Stack<Integer> pila=new Stack<Integer>();
+	// pila.push(1);
+	// pila.push(3);
+	// pila.push(6);
+	// pila.push(33);
+	// pila.push(12);
+	// pila.forEach(item -> System.out.println(item.toString()));
+	// Integer numero;
+	// while(!pila.isEmpty())
+	// {
+	// numero=pila.pop();
+	// System.out.println(numero.toString());
+	// }
 }

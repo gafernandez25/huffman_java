@@ -73,10 +73,6 @@ public class Node
 		return (this.getIzq()==null&&this.getDer()==null);
 	}
 
-	// compare, based on frequency
-	public long compareTo(Node that)
-	{
-		return (this.getN()-that.getN());
-	}
+	
 
 }
