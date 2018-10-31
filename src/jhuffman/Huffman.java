@@ -1,5 +1,7 @@
 package jhuffman;
 
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.Comparator;
@@ -17,7 +19,7 @@ public class Huffman
 	private static int[] tablaApariciones=new int[longAlfabeto];
 	private static TreeUtil tree;
 
-	public static void main(String[] args)
+	public static void main(String[] args) throws IOException
 	{
 		String filename=args[0];
 		if(filename.endsWith(".huf"))
@@ -30,7 +32,7 @@ public class Huffman
 		}
 	}
 
-	public static void comprimir(String filename)
+	public static void comprimir(String filename) throws IOException
 	{
 		// PROGRAMAR AQUI...
 		System.out.println("comprimiendo "+filename);
@@ -47,18 +49,37 @@ public class Huffman
 
 		Node root=buildTree(listaOrdenada);
 
-		// armo la lista de códigos 
+		// armo la lista de códigos
 		final Map<Character,String> listaCodigos=new HashMap<>();
 		buildCode(listaCodigos,root,"");
-		
+
 		System.out.println("Lista codificada");
-		listaCodigos.forEach((k,v)->System.out.println("Key: " + k + ": Value: " + v));
+		listaCodigos.forEach((k, v) -> System.out.println("Key: "+k+": Value: "+v));
 		System.out.println("------------------------------------");
+
+//		FileOutputStream output=new FileOutputStream("cocorito.huf");
+		BitWriter writerFile=new BitWriter("cocorito.huf");
+		
+		// escribe el árbol
+		listaCodigos.forEach((caracter, codigo) -> {
+			
+				System.out.println(caracter.toString());
+				System.out.println(String.valueOf(codigo.length()));
+//				System.out.println(codigo);
+				writerFile.writeBits(caracter.toString());
+				writerFile.writeBits(String.valueOf(codigo.length()));
+//				for(int i=0)
+//				out.write(codigo.getBytes());
+//				out.write(codigo.length());
+			
+		});
+		
+//		System.out.println(String.valueOf(root.getN()));
+//		out.write(String.valueOf(root.getN()).getBytes());
 		
 		
-		// guarda el árbol
 		
-		
+//		out.close();
 		// BitWriter bitWriter=new BitWriter(filename);
 		// bitWriter.writeBit(filename,root);
 
@@ -96,12 +117,12 @@ public class Huffman
 	 * 
 	 * @param nodo
 	 */
-	private static void buildTreeBits(String treeBits,Node nodo)
+	private static void buildTreeBits(String treeBits, Node nodo)
 	{
 		if(nodo.esHoja())
 		{
-//			BitWriter.writeBit(nodo.getC());
-//			treeBits+=
+			// BitWriter.writeBit(nodo.getC());
+			// treeBits+=
 			return;
 		}
 		buildTreeBits(treeBits,nodo.getIzq());

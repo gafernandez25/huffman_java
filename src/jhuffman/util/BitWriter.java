@@ -1,6 +1,7 @@
 package jhuffman.util;
 
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
 
@@ -8,16 +9,16 @@ public class BitWriter
 {
 	private RandomAccessFile raf=null;
 
-	private OutputStream out;
-    private int[] buffer = new int[8];
-    private int count = 0;
-	
+	private FileOutputStream output;
+	private String writeBuffer="";
+	private Integer writeCounter=8;
+
 	public BitWriter(String filename)
 	{
 		// programar aqui
 		try
 		{
-			this.raf=new RandomAccessFile("cocorito.huf","w");
+			output=new FileOutputStream(filename);
 		}
 		catch(FileNotFoundException e)
 		{
@@ -26,48 +27,56 @@ public class BitWriter
 		}
 	}
 
+	public void writeBits(String byteToWrite)
+	{
+		try
+		{
+			Byte value_Byte=Byte.valueOf(byteToWrite);
+			output.write(byteToWrite.getBytes());
+//			output.close();
+		}
+		catch(Exception e)
+		{
+			System.err.println("Error: "+e.getMessage());
+		}
+	}
+
 	public void writeBit(int bit)
 	{
 		// programar aqui
-		this.count++;
-        this.buffer[8-this.count] = bit;
-        if (this.count == 8){
-            int num = 0;
-            for (int index = 0; index < 8; index++){
-                num = 2*num + this.buffer[index];
-            }
+		if(this.writeCounter>0)
+		{
+			this.writeCounter--;
+		}
+		else
+		{
+			this.writeBits(this.writeBuffer);
+			this.writeBuffer = "";
+		}
+		this.writeBuffer=this.writeBuffer.concat(String.valueOf(bit));
 
-            this.out.write(num - 128);
+		// if(nodo.esHoja())
+		// {
+		// BinaryStdOut.write(true);
+		// BinaryStdOut.write(nodo.getC(),8);
+		// return;
+		// }
+		// BinaryStdOut.write(false);
+		// writeTrie(nodo.getIzq());
+		// writeTrie(nodo.getDer());
 
-            this.count = 0;
-        }
-		
-		
-		
-		
-//		if(nodo.esHoja())
-//		{
-//			BinaryStdOut.write(true);
-//			BinaryStdOut.write(nodo.getC(),8);
-//			return;
-//		}
-//		BinaryStdOut.write(false);
-//		writeTrie(nodo.getIzq());
-//		writeTrie(nodo.getDer());
-	
-
-	//
-	// int c=raf.read();
-	// while(c>=0)
-	// {
-	// System.out.print((char)c);
-	//// tablaApariciones[c]++;
-	// c=raf.read();
-	// }
-	//
-	// raf.close();
-	// System.out.println();
-	// System.out.println("-------------------------");
+		//
+		// int c=raf.read();
+		// while(c>=0)
+		// {
+		// System.out.print((char)c);
+		//// tablaApariciones[c]++;
+		// c=raf.read();
+		// }
+		//
+		// raf.close();
+		// System.out.println();
+		// System.out.println("-------------------------");
 	}
 
 	public void flush()
