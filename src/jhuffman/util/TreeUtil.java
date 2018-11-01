@@ -1,5 +1,6 @@
 package jhuffman.util;
 
+import java.util.Map;
 import java.util.Stack;
 
 import jhuffman.ds.Node;
@@ -16,6 +17,34 @@ public class TreeUtil
 		
 		pila.push(root);
 		pilaCod.push("");
+	}
+	
+	public static void writeTree(Map<Character,String> listaCodigos,BitWriter writerFile){
+		listaCodigos.forEach((caracter, codigo) -> {
+			int cantBitsCodigo=codigo.length();
+			System.out.println(caracter.toString()+" - caracter");
+			System.out.println(String.valueOf(cantBitsCodigo)+" - long codigo");
+			System.out.println(codigo+" - código");
+			writerFile.writeBits(caracter);
+			writerFile.writeBits(cantBitsCodigo);
+			int cantBytesCodigo=BitWriter.roundUp(cantBitsCodigo,8);
+
+			int bitsFaltantes=(cantBytesCodigo*8)-cantBitsCodigo;
+			String codCompleto=codigo;
+			// completo el código del string con 0 a la izquierda hasta un
+			// múltiplo de 8
+			for(int i=0; i<bitsFaltantes; i++)
+			{
+				codCompleto="0".concat(codCompleto);
+			}
+			System.out.println(codCompleto+" - código completo");
+
+			for(int i=0; i<cantBytesCodigo; i++)
+			{
+				writerFile.writeBits(Integer.parseInt(codCompleto.substring(i,i+8)));
+			}
+			System.out.println("--");
+		});
 	}
 	
 	public Node next(StringBuffer cod)

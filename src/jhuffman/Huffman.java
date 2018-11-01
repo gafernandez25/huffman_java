@@ -18,6 +18,8 @@ public class Huffman
 	private static final int longAlfabeto=256;
 	private static int[] tablaApariciones=new int[longAlfabeto];
 	private static TreeUtil tree;
+	private static RandomAccessFile textFile,hufFile;
+	private static String textString;
 
 	public static void main(String[] args) throws IOException
 	{
@@ -37,14 +39,18 @@ public class Huffman
 		// PROGRAMAR AQUI...
 		System.out.println("comprimiendo "+filename);
 		System.out.println("-------------------------");
-		getCantidades(filename);
-
+		textFile=new RandomAccessFile(filename,"r");
+		textString="";
+		//leo el archivo de texto
+		leerArchivoTxt();
+		System.out.println("texto: "+textString);
+		System.out.println("------------------------------------");
 		SortedList<Node> listaOrdenada=SortList.buildList(tablaApariciones);
 		System.out.println("Lista de nodos ordenada");
+		int cantHojas=listaOrdenada.size();
+		System.out.println("cant de hojas: "+cantHojas);
 		for(int i=0; i<listaOrdenada.size(); i++)
-		{
 			System.out.println(listaOrdenada.get(i).getC()+" - "+(char)listaOrdenada.get(i).getC()+" - "+listaOrdenada.get(i).getN());
-		}
 		System.out.println("-------------------------");
 
 		Node root=buildTree(listaOrdenada);
@@ -57,76 +63,65 @@ public class Huffman
 		listaCodigos.forEach((k, v) -> System.out.println("Key: "+k+": Value: "+v));
 		System.out.println("------------------------------------");
 
-//		FileOutputStream output=new FileOutputStream("cocorito.huf");
 		BitWriter writerFile=new BitWriter("cocorito.huf");
-		
-		// escribe el árbol
-		listaCodigos.forEach((caracter, codigo) -> {
-			
-				System.out.println(caracter.toString());
-				System.out.println(String.valueOf(codigo.length()));
-//				System.out.println(codigo);
-				writerFile.writeBits(caracter.toString());
-				writerFile.writeBits(String.valueOf(codigo.length()));
-//				for(int i=0)
-//				out.write(codigo.getBytes());
-//				out.write(codigo.length());
-			
-		});
-		
-//		System.out.println(String.valueOf(root.getN()));
-//		out.write(String.valueOf(root.getN()).getBytes());
-		
-		
-		
-//		out.close();
-		// BitWriter bitWriter=new BitWriter(filename);
-		// bitWriter.writeBit(filename,root);
 
-		// veo los códigos en consola
-		// for(int i=0;i<listaCodigos.length;i++){
-		// if(tablaApariciones[i]>0)
-		// System.out.println(i+ " - "+(char)i+" - "+listaCodigos[i]);
-		// }
+		//escribo la cantidad de caracteres diferentes
+		writerFile.writeBits(cantHojas);
+		
+		// escribe el árbol (caracter - long del código del caracter - código
+		// del caracter)
+		TreeUtil.writeTree(listaCodigos,writerFile);
+		
 
-		// veo elementos del árbol en consola
-		// System.out.println(root.getC()+" -
-		// "+(char)listaOrdenada.getFirst().getC()+" -
-		// "+listaOrdenada.getFirst().getN());
-		// System.out.println(root.getDer().getC()+" -
-		// "+(char)listaOrdenada.getFirst().getDer().getC()+" -
-		// "+listaOrdenada.getFirst().getDer().getN());
-		// System.out.println(root.getIzq().getIzq().getIzq().getC()+" -
-		// "+(char)root.getIzq().getIzq().getIzq().getC()+" -
-		// "+root.getIzq().getIzq().getIzq().getN());
-		// System.out.println(root.getIzq().getDer().getC()+" -
-		// "+(char)root.getIzq().getDer().getC()+" -
-		// "+root.getIzq().getDer().getN());
-		//
+		// escribo la longitud del archivo original
+		System.out.println("-------------------------");
+		System.out.println("long del archivo original "+String.valueOf(textString.length()));
+		writerFile.writeBits((int)root.getN());
 
+		// escribo el texto del archivo codificado
+		writeCodedText(listaCodigos,writerFile);
+		
+
+		writerFile.close();
+		textFile.close();
 	}
 
-	public static void descomprimir(String filename)
+	public static void descomprimir(String filename) throws IOException
 	{
 		// PROGRAMAR AQUI...
-		System.out.println("descomprimir");
+//		System.out.println("descomprimir");
+//		System.out.println("-----------------------");
+//		hufFile=new RandomAccessFile(filename,"r");
+//		BitReader readerFile=new BitReader(filename);
+//		//leer 1 byte: cantidad de caracteres diferentes
+//		int cantCaracteres=leerByte(hufFile);
+		
 	}
-
-	/**
-	 * genera una cadena de bits con el árbol
-	 * 
-	 * @param nodo
-	 */
-	private static void buildTreeBits(String treeBits, Node nodo)
-	{
-		if(nodo.esHoja())
+	
+	public static void writeCodedText(Map<Character,String> listaCodigos,BitWriter writerFile){
+		String[] arrayCaracteres=new String[textString.length()];
+		arrayCaracteres=textString.split("(?!^)");	//array con cada caracter del texto original
+		int cantBitsTextoCodificado=0;
+		System.out.println("***************************");
+		for(String caracter:arrayCaracteres)
 		{
-			// BitWriter.writeBit(nodo.getC());
-			// treeBits+=
-			return;
+			String codigoAEnviar=listaCodigos.get(caracter.toCharArray()[0]);	//obtengo el código mapeado por caracter
+			cantBitsTextoCodificado+=codigoAEnviar.length();	//cantidad de bits que voy mandando
+			for(int i=0; i<codigoAEnviar.length(); i++)
+			{
+				System.out.print(codigoAEnviar.substring(i,i+1));
+				writerFile.writeBit(Integer.parseInt(codigoAEnviar.substring(i,i+1)));
+			}
 		}
-		buildTreeBits(treeBits,nodo.getIzq());
-		buildTreeBits(treeBits,nodo.getDer());
+		
+		//verifico si los bits mandados son múltiplos de 8 y completo con 0
+		int cantBytesTextoCodificado=BitWriter.roundUp(cantBitsTextoCodificado,8);
+		int bitsFaltantes=(cantBytesTextoCodificado*8)-cantBitsTextoCodificado;
+		for(int i=0; i<bitsFaltantes; i++)
+		{
+			System.out.print("0");
+			writerFile.writeBit(0);
+		}
 	}
 
 	/**
@@ -182,42 +177,30 @@ public class Huffman
 	 * 
 	 * @param filename
 	 */
-	private static void getCantidades(String filename)
+	private static void leerArchivoTxt()
 	{
 		try
 		{
-			RandomAccessFile raf=new RandomAccessFile(filename,"r");
 
-			int c=raf.read();
+			int c=textFile.read();
 			while(c>=0)
 			{
-				System.out.print((char)c);
+				textString+=(char)c;
 				tablaApariciones[c]++;
-				c=raf.read();
+				c=textFile.read();
 			}
 
-			raf.close();
+			// textFile.close();
 		}
 		catch(IOException e)
 		{
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		System.out.println();
-		System.out.println("-------------------------");
 
 	}
-	// Stack<Integer> pila=new Stack<Integer>();
-	// pila.push(1);
-	// pila.push(3);
-	// pila.push(6);
-	// pila.push(33);
-	// pila.push(12);
-	// pila.forEach(item -> System.out.println(item.toString()));
-	// Integer numero;
-	// while(!pila.isEmpty())
-	// {
-	// numero=pila.pop();
-	// System.out.println(numero.toString());
-	// }
+
+	private static void leerArchivoHuf(){
+		
+	}
 }

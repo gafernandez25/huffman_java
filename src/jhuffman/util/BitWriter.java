@@ -2,6 +2,7 @@ package jhuffman.util;
 
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
 
@@ -27,13 +28,12 @@ public class BitWriter
 		}
 	}
 
-	public void writeBits(String byteToWrite)
+	public void writeBits(int byteToWrite)
 	{
 		try
 		{
-			Byte value_Byte=Byte.valueOf(byteToWrite);
-			output.write(byteToWrite.getBytes());
-//			output.close();
+//			Byte value_Byte=Byte.valueOf(byteToWrite);
+			this.output.write(byteToWrite);
 		}
 		catch(Exception e)
 		{
@@ -50,33 +50,11 @@ public class BitWriter
 		}
 		else
 		{
-			this.writeBits(this.writeBuffer);
-			this.writeBuffer = "";
+			this.writeBits(Integer.parseInt(this.writeBuffer));
+			this.writeBuffer="";
 		}
 		this.writeBuffer=this.writeBuffer.concat(String.valueOf(bit));
 
-		// if(nodo.esHoja())
-		// {
-		// BinaryStdOut.write(true);
-		// BinaryStdOut.write(nodo.getC(),8);
-		// return;
-		// }
-		// BinaryStdOut.write(false);
-		// writeTrie(nodo.getIzq());
-		// writeTrie(nodo.getDer());
-
-		//
-		// int c=raf.read();
-		// while(c>=0)
-		// {
-		// System.out.print((char)c);
-		//// tablaApariciones[c]++;
-		// c=raf.read();
-		// }
-		//
-		// raf.close();
-		// System.out.println();
-		// System.out.println("-------------------------");
 	}
 
 	public void flush()
@@ -87,5 +65,24 @@ public class BitWriter
 	public void close()
 	{
 		// programar aqui
+		try
+		{
+			this.output.close();
+		}
+		catch(IOException e)
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	/**
+	 * redondea una división de enteros para arriba
+	 * @param num
+	 * @param divisor
+	 * @return
+	 */
+	public static int roundUp(int num, int divisor) {
+	    return (num + divisor - 1) / divisor;
 	}
 }
