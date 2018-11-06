@@ -33,6 +33,7 @@ public class BitWriter
 		try
 		{
 //			Byte value_Byte=Byte.valueOf(byteToWrite);
+			//this.output.write(byteToWrite);
 			this.output.write(byteToWrite);
 		}
 		catch(Exception e)
@@ -47,13 +48,19 @@ public class BitWriter
 		if(this.writeCounter>0)
 		{
 			this.writeCounter--;
+			this.writeBuffer=this.writeBuffer.concat(String.valueOf(bit));
 		}
-		else
+		
+		if(this.writeCounter==0)		
 		{
-			this.writeBits(Integer.parseInt(this.writeBuffer));
+			//System.out.println("Escribe el byte: "+writeBuffer.toString());
+			this.writeBits(Integer.parseInt(this.writeBuffer,2));
 			this.writeBuffer="";
+			this.writeCounter=8;
 		}
-		this.writeBuffer=this.writeBuffer.concat(String.valueOf(bit));
+		
+		//System.out.println("BitBuffer: "+writeBuffer.toString());
+		
 
 	}
 
@@ -82,7 +89,8 @@ public class BitWriter
 	 * @param divisor
 	 * @return
 	 */
-	public static int roundUp(int num, int divisor) {
-	    return (num + divisor - 1) / divisor;
+	public static int roundUp(int num, double divisor) {
+	    //return (num + divisor - 1) / divisor;
+		return (int)Math.ceil(num / divisor); 
 	}
 }

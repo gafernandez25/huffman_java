@@ -19,7 +19,7 @@ public class TreeUtil
 		pilaCod.push("");
 	}
 	
-	public static void writeTree(Map<Character,String> listaCodigos,BitWriter writerFile){
+	public static void writeTree(Map<Character,String> listaCodigos,BitWriter writerFile, int[] tablaApariciones){
 		listaCodigos.forEach((caracter, codigo) -> {
 			int cantBitsCodigo=codigo.length();
 			System.out.println(caracter.toString()+" - caracter");
@@ -27,8 +27,9 @@ public class TreeUtil
 			System.out.println(codigo+" - código");
 			writerFile.writeBits(caracter);
 			writerFile.writeBits(cantBitsCodigo);
-			int cantBytesCodigo=BitWriter.roundUp(cantBitsCodigo,8);
-
+			writerFile.writeBits(tablaApariciones[(int)caracter]);
+			int cantBytesCodigo=BitWriter.roundUp(cantBitsCodigo,8.0);
+			
 			int bitsFaltantes=(cantBytesCodigo*8)-cantBitsCodigo;
 			String codCompleto=codigo;
 			// completo el código del string con 0 a la izquierda hasta un
@@ -39,9 +40,11 @@ public class TreeUtil
 			}
 			System.out.println(codCompleto+" - código completo");
 
-			for(int i=0; i<cantBytesCodigo; i++)
+			for(int i=0; i<cantBitsCodigo+bitsFaltantes; i++)
 			{
-				writerFile.writeBits(Integer.parseInt(codCompleto.substring(i,i+8)));
+				//writerFile.writeBits(Integer.parseInt(codCompleto.substring(i,i+8)));
+				String c = ""+codCompleto.charAt(i);
+				writerFile.writeBit(Integer.parseInt(c));
 			}
 			System.out.println("--");
 		});

@@ -52,13 +52,13 @@ public class Huffman
 		for(int i=0; i<listaOrdenada.size(); i++)
 			System.out.println(listaOrdenada.get(i).getC()+" - "+(char)listaOrdenada.get(i).getC()+" - "+listaOrdenada.get(i).getN());
 		System.out.println("-------------------------");
-
+		
 		Node root=buildTree(listaOrdenada);
-
+		
 		// armo la lista de códigos
 		final Map<Character,String> listaCodigos=new HashMap<>();
 		buildCode(listaCodigos,root,"");
-
+		
 		System.out.println("Lista codificada");
 		listaCodigos.forEach((k, v) -> System.out.println("Key: "+k+": Value: "+v));
 		System.out.println("------------------------------------");
@@ -70,7 +70,7 @@ public class Huffman
 		
 		// escribe el árbol (caracter - long del código del caracter - código
 		// del caracter)
-		TreeUtil.writeTree(listaCodigos,writerFile);
+		TreeUtil.writeTree(listaCodigos,writerFile, tablaApariciones);
 		
 
 		// escribo la longitud del archivo original
@@ -89,12 +89,67 @@ public class Huffman
 	public static void descomprimir(String filename) throws IOException
 	{
 		// PROGRAMAR AQUI...
-//		System.out.println("descomprimir");
-//		System.out.println("-----------------------");
-//		hufFile=new RandomAccessFile(filename,"r");
-//		BitReader readerFile=new BitReader(filename);
+		System.out.println("Descomprimir");
+		System.out.println("-----------------------");
+		hufFile=new RandomAccessFile(filename,"r");
+		BitReader readerFile = new BitReader(filename);
 //		//leer 1 byte: cantidad de caracteres diferentes
-//		int cantCaracteres=leerByte(hufFile);
+		int cantCaracteres = readerFile.readByte();
+		System.out.println("Cant de caracteres distintos a leer: "+cantCaracteres);
+		
+		int c = 0;
+		int longitudCod = 0;
+		int concurrencia = 0;
+		String codHuffman = "";
+		
+		//Leo la estructura del nodo para cada caracter a leer
+		for(int i=0;i<cantCaracteres;i++)
+		{
+			c = readerFile.readByte();
+			longitudCod = readerFile.readByte();
+			concurrencia = readerFile.readByte();
+			
+			tablaApariciones[c]= concurrencia;	
+			
+			double cantBytes = Math.ceil(longitudCod)/8.0;
+			for(int x=0; x<cantBytes; x++)
+			{
+				codHuffman += readerFile.readByte();
+			}
+			
+			/* TODO:
+			 * Acá habria que capturar el codigo huffman para guardarlo en una estructura auxiliar,
+			 * pero con la tabla de apariciones ya se puede rearmar el arbol, me parece mas simple asi XD 
+			 */
+					
+			//Limpia el cod
+			codHuffman = "";			
+	
+		}
+		
+		//Lee la long de caracteres del archivo
+		int caracteresTotales = readerFile.readByte();
+		
+		//TODO: Arma el arbol de huffman como la compresion (Habria que encapsularlo en otro metodo)		
+		SortedList<Node> listaOrdenada=SortList.buildList(tablaApariciones);
+		System.out.println("Lista de nodos ordenada");
+		int cantHojas=listaOrdenada.size();
+		System.out.println("cant de hojas: "+cantHojas);
+		for(int i=0; i<listaOrdenada.size(); i++)
+			System.out.println(listaOrdenada.get(i).getC()+" - "+(char)listaOrdenada.get(i).getC()+" - "+listaOrdenada.get(i).getN());
+		System.out.println("-------------------------");
+		
+		Node root=buildTree(listaOrdenada);
+		
+		// armo la lista de códigos
+		final Map<Character,String> listaCodigos=new HashMap<>();
+		buildCode(listaCodigos,root,"");
+		
+		System.out.println("Lista codificada");
+		listaCodigos.forEach((k, v) -> System.out.println("Key: "+k+": Value: "+v));
+		System.out.println("------------------------------------");
+		
+		//TODO: Leer los bytes restantes para traducir los bits a los caracteres desde el arbol
 		
 	}
 	
@@ -107,10 +162,20 @@ public class Huffman
 		{
 			String codigoAEnviar=listaCodigos.get(caracter.toCharArray()[0]);	//obtengo el código mapeado por caracter
 			cantBitsTextoCodificado+=codigoAEnviar.length();	//cantidad de bits que voy mandando
+			
+			//System.out.println("Codigo a enviar: "+codigoAEnviar.toString());
+			
 			for(int i=0; i<codigoAEnviar.length(); i++)
 			{
-				System.out.print(codigoAEnviar.substring(i,i+1));
-				writerFile.writeBit(Integer.parseInt(codigoAEnviar.substring(i,i+1)));
+				//System.out.print(codigoAEnviar.substring(i,i+1));
+				//writerFile.writeBit(Integer.parseInt(codigoAEnviar.substring(i,i+1)));
+				
+				//System.out.println("Caracter a enviar: "+codigoAEnviar.charAt(i));
+				System.out.print(codigoAEnviar.charAt(i));
+				
+				String c = ""+codigoAEnviar.charAt(i);
+				writerFile.writeBit(Integer.parseInt(c));
+				
 			}
 		}
 		
