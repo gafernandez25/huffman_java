@@ -19,7 +19,8 @@ public class BitWriter
 		// programar aqui
 		try
 		{
-			output=new FileOutputStream(filename);
+			//output=new FileOutputStream(filename);
+			this.raf = new RandomAccessFile(filename,"rw");	
 		}
 		catch(FileNotFoundException e)
 		{
@@ -32,15 +33,27 @@ public class BitWriter
 	{
 		try
 		{
-//			Byte value_Byte=Byte.valueOf(byteToWrite);
 			//this.output.write(byteToWrite);
-			this.output.write(byteToWrite);
+			this.raf.writeByte(byteToWrite);
 		}
 		catch(Exception e)
 		{
 			System.err.println("Error: "+e.getMessage());
 		}
 	}
+	
+	public void writeLong(long l)
+	{
+		try
+		{
+			//this.output.write(byteToWrite);
+			this.raf.writeLong(l);
+		}
+		catch(Exception e)
+		{
+			System.err.println("Error: "+e.getMessage());
+		}
+	}	
 
 	public void writeBit(int bit)
 	{
@@ -74,7 +87,7 @@ public class BitWriter
 		// programar aqui
 		try
 		{
-			this.output.close();
+			this.raf.close();
 		}
 		catch(IOException e)
 		{

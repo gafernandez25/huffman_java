@@ -13,6 +13,7 @@ import jhuffman.SortList.*;
 import jhuffman.ds.*;
 import jhuffman.util.*;
 
+
 public class Huffman
 {
 	private static final int longAlfabeto=256;
@@ -76,8 +77,10 @@ public class Huffman
 		// escribo la longitud del archivo original
 		System.out.println("-------------------------");
 		System.out.println("long del archivo original "+String.valueOf(textString.length()));
-		writerFile.writeBits((int)root.getN());
-
+		
+		//writerFile.writeBits(textString.length());
+		writerFile.writeLong(root.getN());
+		
 		// escribo el texto del archivo codificado
 		writeCodedText(listaCodigos,writerFile);
 		
@@ -107,8 +110,9 @@ public class Huffman
 		{
 			c = readerFile.readByte();
 			longitudCod = readerFile.readByte();
-			concurrencia = readerFile.readByte();
+			concurrencia = readerFile.readByte() & 0xFF; //Pasa la concurrencia a unsigned int
 			
+			//System.out.println("Caracter leido: "+(char)c+" Concurrencia "+concurrencia);
 			tablaApariciones[c]= concurrencia;	
 			
 			double cantBytes = Math.ceil(longitudCod)/8.0;
@@ -127,9 +131,6 @@ public class Huffman
 	
 		}
 		
-		//Lee la long de caracteres del archivo
-		int caracteresTotales = readerFile.readByte();
-		
 		//TODO: Arma el arbol de huffman como la compresion (Habria que encapsularlo en otro metodo)		
 		SortedList<Node> listaOrdenada=SortList.buildList(tablaApariciones);
 		System.out.println("Lista de nodos ordenada");
@@ -142,15 +143,45 @@ public class Huffman
 		Node root=buildTree(listaOrdenada);
 		
 		// armo la lista de códigos
+		/*
 		final Map<Character,String> listaCodigos=new HashMap<>();
 		buildCode(listaCodigos,root,"");
 		
 		System.out.println("Lista codificada");
 		listaCodigos.forEach((k, v) -> System.out.println("Key: "+k+": Value: "+v));
 		System.out.println("------------------------------------");
+		 */	
 		
-		//TODO: Leer los bytes restantes para traducir los bits a los caracteres desde el arbol
+		//Lee la long de caracteres del archivo
+		long caracteresTotales = readerFile.readLong();
+		long caracteresRestantes = caracteresTotales;
+		System.out.println("Cantidad de Caracteres totales a leer: "+caracteresTotales);
+		System.out.println("------------------------------------");
+		System.out.println("Texto del archivo comprimido: ");
+				
+		//Leer los bytes restantes para traducir los bits a los caracteres desde el arbol
+		Node nodo = root;
+		while(caracteresRestantes>0)
+		{
+			int bitLeido = readerFile.readBit();
+			//System.out.println("Bit leido: "+bitLeido);
+			
+			//Recorrer el arbol con el bit leido
+			if(bitLeido == 1)
+				nodo = nodo.getDer();
+			else
+				nodo = nodo.getIzq();
+			
+			//Si es hoja, es un caracter
+			if(nodo.esHoja())
+			{
+				System.out.print((char)nodo.getC());
+				caracteresRestantes--;
+				nodo = root;
+			}
+		}
 		
+		readerFile.close();
 	}
 	
 	public static void writeCodedText(Map<Character,String> listaCodigos,BitWriter writerFile){

@@ -28,8 +28,19 @@ public class BitReader
 	
 	public int readBit()
 	{
-		// programar aqui
-		return 0;
+		byte buffer=0;
+		
+		if(readCounter==8)
+		{
+			buffer = this.readByte();
+			readBuffer = String.format("%8s", Integer.toBinaryString(buffer & 0xFF)).replace(' ', '0');
+			//System.out.println(readBuffer);
+			readCounter = 0;
+		}
+		
+		char c = readBuffer.charAt(readCounter);
+		readCounter++;
+		return Integer.parseInt(""+c);
 	}
 	
 	public byte readByte()
@@ -46,6 +57,22 @@ public class BitReader
 			e.printStackTrace();
 		}
 		return b;
+	}
+	
+	public long readLong()
+	{
+		long l=0;
+		
+		try
+		{
+			l = this.raf.readLong();	
+		}
+		catch(Exception e)
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return l;
 	}
 	
 	public boolean eof()
