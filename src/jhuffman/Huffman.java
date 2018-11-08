@@ -3,6 +3,7 @@ package jhuffman;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.io.RandomAccessFile;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -64,7 +65,7 @@ public class Huffman
 		listaCodigos.forEach((k, v) -> System.out.println("Key: "+k+": Value: "+v));
 		System.out.println("------------------------------------");
 
-		BitWriter writerFile=new BitWriter("cocorito.huf");
+		BitWriter writerFile=new BitWriter(filename+".huf");
 
 		//escribo la cantidad de caracteres diferentes
 		writerFile.writeBits(cantHojas);
@@ -113,7 +114,7 @@ public class Huffman
 			concurrencia = readerFile.readByte() & 0xFF; //Pasa la concurrencia a unsigned int
 			
 			//System.out.println("Caracter leido: "+(char)c+" Concurrencia "+concurrencia);
-			tablaApariciones[c]= concurrencia;	
+			tablaApariciones[c & 0xFF]= concurrencia;	
 			
 			double cantBytes = Math.ceil(longitudCod)/8.0;
 			for(int x=0; x<cantBytes; x++)
@@ -161,6 +162,7 @@ public class Huffman
 				
 		//Leer los bytes restantes para traducir los bits a los caracteres desde el arbol
 		Node nodo = root;
+		PrintWriter writer = new PrintWriter("huffman-descomprimido.txt", "UTF-8");
 		while(caracteresRestantes>0)
 		{
 			int bitLeido = readerFile.readBit();
@@ -176,11 +178,12 @@ public class Huffman
 			if(nodo.esHoja())
 			{
 				System.out.print((char)nodo.getC());
+				writer.print((char)nodo.getC());
 				caracteresRestantes--;
 				nodo = root;
 			}
 		}
-		
+		writer.close();
 		readerFile.close();
 	}
 	
@@ -278,12 +281,20 @@ public class Huffman
 		try
 		{
 
-			int c=textFile.read();
-			while(c>=0)
+			//int c=textFile.read();
+			byte b = textFile.readByte();
+			while(b!=-1) //>=0)
 			{
+				/*
 				textString+=(char)c;
 				tablaApariciones[c]++;
 				c=textFile.read();
+				*/
+				
+				textString+=(char)(b & 0xFF);
+				tablaApariciones[b & 0xFF]++;
+				b=textFile.readByte();
+								
 			}
 
 			// textFile.close();
@@ -291,7 +302,7 @@ public class Huffman
 		catch(IOException e)
 		{
 			// TODO Auto-generated catch block
-			e.printStackTrace();
+			//e.printStackTrace();
 		}
 
 	}
