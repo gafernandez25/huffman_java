@@ -182,6 +182,7 @@ public class Huffman
 				caracteresRestantes--;
 				nodo = root;
 			}
+			
 		}
 		writer.close();
 		readerFile.close();
